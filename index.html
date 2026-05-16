@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>複名數時間單位換算器</title>
+    <title>複名數時間單位拆解換算機</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
@@ -97,13 +97,13 @@
             font-size: 18px;
             font-weight: bold;
             color: #d35400;
-            margin-top: 10px;
-            margin-bottom: 5px;
+            margin-top: 15px;
+            margin-bottom: 8px;
         }
         .step-content {
             font-size: 16px;
             padding-left: 15px;
-            line-height: 1.6;
+            line-height: 1.8;
         }
 
         /* 最終數學結果呈現 */
@@ -130,12 +130,12 @@
             display: inline-block;
             vertical-align: middle;
             text-align: center;
-            font-size: 28px;
+            font-size: 24px;
             font-weight: bold;
-            margin-left: 5px;
+            margin: 0 5px;
         }
-        .math-numerator { border-bottom: 3px solid #333; padding: 0 8px; }
-        .math-denominator { padding: 0 8px; }
+        .math-numerator { border-bottom: 2px solid #333; padding: 0 6px; }
+        .math-denominator { padding: 0 6px; }
     </style>
 </head>
 <body>
@@ -195,6 +195,16 @@
     // 最大公因數（約分用）
     function gcd(a, b) { return b ? gcd(b, a % b) : a; }
 
+    // 生成漂亮的 HTML 分數元件
+    function createFractionHtml(num, den, color = '#333') {
+        return `
+            <div class="math-fraction" style="color: ${color};">
+                <div class="math-numerator">${num}</div>
+                <div class="math-denominator">${den}</div>
+            </div>
+        `;
+    }
+
     function initChart() {
         splitChart = new Chart(ctx, {
             type: 'bar',
@@ -202,7 +212,7 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                indexAxis: 'y', // 變成橫向長條圖，更像天數累積
+                indexAxis: 'y',
                 scales: {
                     x: { stacked: true, max: 24, display: false },
                     y: { stacked: true, grid: { display: false } }
@@ -227,7 +237,6 @@
         const datasetPart = [];
         const datasetEmpty = [];
 
-        // 畫出整數日
         for (let i = 1; i <= days; i++) {
             labels.push(`第 ${i} 天`);
             datasetFull.push(24);
@@ -235,7 +244,6 @@
             datasetEmpty.push(0);
         }
 
-        // 畫出不完整的那一天（如果小時 > 0）
         if (hours > 0 || days === 0) {
             labels.push(`第 ${days + 1} 天`);
             datasetFull.push(0);
@@ -259,38 +267,36 @@
         const cleanDecimalPart = parseFloat(decimalPart);
         const totalDecimal = (days + cleanDecimalPart);
 
-        // 3. 填寫解題步驟文字
+        // 3. 填寫解題步驟文字 (改用 HTML 標籤結構呈現分數)
         document.getElementById('step1Text').innerHTML = `我們有完整的 <b>${days} 日</b>，和多出來的 <b>${hours} 小時</b>。整數部分的 <b>${days} 日</b> 先保留不動。`;
         
         let step2Html = `因為 1 日 = 24 小時，所以 ${hours} 小時就是：<br>`;
-        step2Html += `• <b>分數：</b> 24格裡的${hours}格 $\\rightarrow$ <b style="color:#d35400;">\\frac{${hours}}{24} 日</b>`;
+        step2Html += `<div style="display:flex; align-items:center; margin-top:5px;"><span>• <b>分數：</b> 24 格裡的 ${hours} 格 &nbsp;➔&nbsp;</span> ${createFractionHtml(hours, 24, '#d35400')} <span>日</span>`;
         if (currentGcd > 1) {
-            step2Html += ` (約分後是 <b>\\frac{${simNumerator}}{${simDenominator}} 日</b>)`;
+            step2Html += `<span>&nbsp;(約分後是 </span> ${createFractionHtml(simNumerator, simDenominator, '#333')} <span>日)</span>`;
         }
-        step2Html += `<br>• <b>小數：</b> 用 ${hours} ÷ 24 = <b style="color:#27ae60;">${cleanDecimalPart} 日</b>`;
+        step2Html += `</div>`;
+        step2Html += `<div style="margin-top:5px;">• <b>小數：</b> 用 ${hours} ÷ 24 = <b style="color:#27ae60;">${cleanDecimalPart} 日</b></div>`;
         document.getElementById('step2Text').innerHTML = step2Html;
 
-        document.getElementById('step3Text').innerHTML = `把整數和剛剛換算出來的部分合併：<br>` + 
-            `• <b>分數：</b> ${days} 日 + \\frac{${simNumerator}}{${simDenominator}} 日 = <b>${days}又\\frac{${simNumerator}}{${simDenominator}} 日</b><br>` +
-            `• <b>小數：</b> ${days} 日 + ${cleanDecimalPart} 日 = <b>${totalDecimal} 日</b>`;
+        let step3Html = `把整數和剛剛換算出來的部分合併起來：<br>`;
+        step3Html += `<div style="display:flex; align-items:center; margin-top:5px;"><span>• <b>分數：</b> ${days} 日 + </span> ${createFractionHtml(simNumerator, simDenominator)} <span>日 = &nbsp;</span> <span style="font-size:20px; font-weight:bold;">${days}</span> ${createFractionHtml(simNumerator, simDenominator)} <span>日</span></div>`;
+        step3Html += `<div style="margin-top:5px;">• <b>小數：</b> ${days} 日 + ${cleanDecimalPart} 日 = <b>${totalDecimal} 日</b></div>`;
+        document.getElementById('step3Text').innerHTML = step3Html;
 
-        // 4. 生成最終卡片的精美數學式
+        // 4. 生成最終卡片的結果
         // 分數卡片
-        let fractionHtml = '';
+        let fractionHtml = '<div style="display:inline-flex; align-items:center; justify-content:center;">';
         if (days > 0) {
             fractionHtml += `<span class="math-text">${days}</span>`;
         }
-        fractionHtml += `
-            <div class="math-fraction" style="color:#d35400;">
-                <div class="math-numerator">${simNumerator}</div>
-                <div class="math-denominator">${simDenominator}</div>
-            </div>
-            <span class="math-text" style="font-size:24px; margin-left:5px;">日</span>
-        `;
+        fractionHtml += createFractionHtml(simNumerator, simDenominator, '#d35400');
+        fractionHtml += `<span class="math-text" style="font-size:24px; margin-left:5px;">日</span></div>`;
+        
         if (currentGcd > 1) {
-            fractionHtml += `<div class="process-text">（原來的 ${days}又\\frac{${hours}}{24} 約分而來）</div>`;
+            fractionHtml += `<div class="process-text">（原來的 ${days}又 ${hours}/24 約分而來）</div>`;
         } else {
-            fractionHtml += `<div class="process-text">（已經是最簡分數）</div>`;
+            fractionHtml += `<div class="process-text">（已經是最簡分數囉）</div>`;
         }
         document.getElementById('fractionFinal').innerHTML = fractionHtml;
 
@@ -305,7 +311,7 @@
 
     // 啟動
     initChart();
-    calculateTime(); // 預設執行 2日 18小時
+    calculateTime();
 </script>
 
 </body>
