@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>時間單位換算學習機（進階版）</title>
+    <title>複名數時間單位換算器</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: 'Arial', sans-serif;
-            background-color: #f0f3f5;
+            background-color: #f5f7fa;
             color: #333;
             display: flex;
             flex-direction: column;
@@ -21,325 +21,291 @@
             background: white;
             padding: 30px;
             border-radius: 16px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.05);
             text-align: center;
         }
-        h1 { color: #2c3e50; margin-bottom: 20px; }
+        h1 { color: #2c3e50; margin-bottom: 5px; }
+        p.subtitle { color: #7f8c8d; margin-bottom: 25px; }
         
-        /* 頁籤樣式 */
-        .tabs {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 25px;
-            border-bottom: 2px solid #ddd;
-        }
-        .tab-btn {
-            padding: 12px 30px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            background: none;
-            border: none;
-            color: #7f8c8d;
-            transition: all 0.3s;
-        }
-        .tab-btn.active {
-            color: #2980b9;
-            border-bottom: 4px solid #2980b9;
-            margin-bottom: -2px;
-        }
-
-        /* 控制拉桿 */
-        .control-panel {
-            background: #e8f4f8;
+        /* 輸入面板 */
+        .input-panel {
+            background: #eef2f5;
             padding: 20px;
             border-radius: 12px;
             margin-bottom: 25px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            font-size: 18px;
+            font-weight: bold;
         }
-        input[type=range] {
-            width: 80%;
-            height: 12px;
+        .input-panel input {
+            width: 80px;
+            padding: 8px;
+            font-size: 18px;
+            text-align: center;
+            border: 2px solid #bdc3c7;
+            border-radius: 6px;
+        }
+        .btn-calc {
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
             border-radius: 6px;
             cursor: pointer;
+            transition: 0.2s;
         }
-        .value-display {
-            font-size: 28px;
-            font-weight: bold;
-            color: #2980b9;
-            margin-top: 10px;
-        }
+        .btn-calc:hover { background-color: #3498db; }
 
-        /* 圖表並排區塊 */
-        .charts-flex {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            flex-wrap: wrap;
-            margin-bottom: 30px;
-            gap: 20px;
+        /* 圖表呈現區 */
+        .visual-section {
+            background: #fcfcfc;
+            border: 1px solid #eaeded;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
         }
-        .chart-box {
-            flex: 1;
-            min-width: 280px;
-            max-width: 400px;
-            height: 280px;
+        .chart-container {
             position: relative;
+            height: 200px;
+            width: 100%;
+            margin: auto;
         }
-        .chart-title {
+        .legend-box {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .legend-item { display: flex; align-items: center; gap: 5px; }
+        .color-box { width: 15px; height: 15px; border-radius: 3px; }
+
+        /* 教學解釋步驟區 */
+        .explanation-section {
+            text-align: left;
+            background: #fffdf9;
+            border-left: 5px solid #f39c12;
+            padding: 20px;
+            border-radius: 0 12px 12px 0;
+            margin-bottom: 25px;
+        }
+        .step-title {
+            font-size: 18px;
             font-weight: bold;
-            color: #555;
+            color: #d35400;
+            margin-top: 10px;
             margin-bottom: 5px;
         }
+        .step-content {
+            font-size: 16px;
+            padding-left: 15px;
+            line-height: 1.6;
+        }
 
-        /* 結果顯示區域 */
-        .result-box {
+        /* 最終數學結果呈現 */
+        .final-results {
             display: flex;
             justify-content: space-around;
             gap: 20px;
         }
         .result-card {
-            background: #fdfefe;
-            border: 2px solid #bdc3c7;
+            background: white;
             border-radius: 12px;
-            padding: 20px;
+            padding: 25px;
             flex: 1;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+            border-top: 6px solid #333;
         }
-        .result-card.fraction { border-color: #e67e22; }
-        .result-card.decimal { border-color: #2ecc71; }
-        .card-title { font-size: 18px; font-weight: bold; margin-bottom: 15px;}
-        
-        /* 分數數學符號 */
+        .result-card.fraction { border-top-color: #e67e22; }
+        .result-card.decimal { border-top-color: #2ecc71; }
+        .card-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #555; }
+
+        /* 數學符號樣式 */
+        .math-text { font-size: 32px; font-weight: bold; vertical-align: middle;}
         .math-fraction {
             display: inline-block;
             vertical-align: middle;
             text-align: center;
-            font-size: 32px;
+            font-size: 28px;
             font-weight: bold;
+            margin-left: 5px;
         }
-        .math-numerator { border-bottom: 3px solid #333; padding: 0 10px; }
-        .math-denominator { padding: 0 10px; }
-        
-        .math-decimal {
-            font-size: 42px;
-            font-weight: bold;
-            color: #27ae60;
-            line-height: 60px;
-        }
-        .process-text {
-            font-size: 15px;
-            color: #7f8c8d;
-            margin-top: 12px;
-        }
+        .math-numerator { border-bottom: 3px solid #333; padding: 0 8px; }
+        .math-denominator { padding: 0 8px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🕒 時間單位換算學習機</h1>
+    <h1>🕒 複名數時間單位拆解換算機</h1>
+    <p class="subtitle">輸入「幾日幾小時」，看圖形與算式如何一步步把它變成「帶分數」與「小數」日！</p>
 
-    <div class="tabs">
-        <button class="tab-btn active" onclick="switchMode('day-hour')">日 與 時 (24進制)</button>
-        <button class="tab-btn" onclick="switchMode('hour-minute')">時 與 分 (60進制)</button>
+    <div class="input-panel">
+        <input type="number" id="inputDays" min="0" max="10" value="2"> <span>日</span>
+        <input type="number" id="inputHours" min="0" max="23" value="18"> <span>小時</span>
+        <button class="btn-calc" onclick="calculateTime()">開始拆解教學</button>
     </div>
 
-    <div class="control-panel">
-        <label id="sliderLabel" style="font-weight: bold; font-size: 16px;"></label>
-        <input type="range" id="timeRange">
-        <div class="value-display" id="currentValueDisplay"></div>
-    </div>
-
-    <div class="charts-flex">
-        <div class="chart-box">
-            <div class="chart-title">📊 長條圖（數線概念）</div>
-            <canvas id="barChart"></canvas>
+    <div class="visual-section">
+        <div style="font-weight: bold; margin-bottom: 10px; color:#555;">📊 每日時間分配圖</div>
+        <div class="chart-container">
+            <canvas id="splitChart"></canvas>
         </div>
-        <div class="chart-box">
-            <div class="chart-title">🍕 圓餅圖（時鐘與比例概念）</div>
-            <canvas id="pieChart"></canvas>
+        <div class="legend-box">
+            <div class="legend-item"><div class="color-box" style="background: #2ecc71;"></div> 完整的整數日 (滿24小時)</div>
+            <div class="legend-item"><div class="color-box" style="background: #e67e22;"></div> 剩下的不完整小時</div>
+            <div class="legend-item"><div class="color-box" style="background: #e5e8e8;"></div> 未度過的時間</div>
         </div>
     </div>
 
-    <div class="result-box">
+    <div class="explanation-section">
+        <h3 style="margin-top:0; color:#2c3e50;">💡 老師的解題步驟：</h3>
+        
+        <div class="step-title">第一步：分開來看</div>
+        <div class="step-content" id="step1Text"></div>
+
+        <div class="step-title">第二步：把「小時」換算成「日」</div>
+        <div class="step-content" id="step2Text"></div>
+
+        <div class="step-title">第三步：與原本的「日」加起來</div>
+        <div class="step-content" id="step3Text"></div>
+    </div>
+
+    <div class="final-results">
         <div class="result-card fraction">
-            <div class="card-title" style="color: #d35400;">用【分數】表示</div>
-            <div id="fractionOutput"></div>
+            <div class="card-title">用【分數】表示 (日)</div>
+            <div id="fractionFinal"></div>
         </div>
 
         <div class="result-card decimal">
-            <div class="card-title" style="color: #27ae60;">用【小數】表示</div>
-            <div id="decimalOutput"></div>
+            <div class="card-title">用【小數】表示 (日)</div>
+            <div id="decimalFinal"></div>
         </div>
     </div>
 </div>
 
 <script>
-    // 目前模式：'day-hour' 或 'hour-minute'
-    let currentMode = 'day-hour'; 
-    
-    // 獲取 DOM 元素
-    const timeRange = document.getElementById('timeRange');
-    const sliderLabel = document.getElementById('sliderLabel');
-    const currentValueDisplay = document.getElementById('currentValueDisplay');
-    const fractionOutput = document.getElementById('fractionOutput');
-    const decimalOutput = document.getElementById('decimalOutput');
-    
-    const barCtx = document.getElementById('barChart').getContext('2d');
-    const pieCtx = document.getElementById('pieChart').getContext('2d');
-
-    let barChart, pieChart;
-
-    // 模式設定資料
-    const modeConfig = {
-        'day-hour': {
-            max: 24,
-            unitFrom: '小時',
-            unitTo: '日',
-            barLabels: Array.from({length: 24}, (_, i) => `${i + 1}h`),
-            color: '#e67e22'
-        },
-        'hour-minute': {
-            max: 60,
-            unitFrom: '分鐘',
-            unitTo: '小時',
-            barLabels: Array.from({length: 60}, (_, i) => (i+1)%5===0 ? `${i+1}m` : ''), // 每5分鐘顯示一次標籤避重疊
-            color: '#3498db'
-        }
-    };
+    const ctx = document.getElementById('splitChart').getContext('2d');
+    let splitChart;
 
     // 最大公因數（約分用）
     function gcd(a, b) { return b ? gcd(b, a % b) : a; }
 
-    // 初始化圖表
-    function initCharts() {
-        // 長條圖
-        barChart = new Chart(barCtx, {
+    function initChart() {
+        splitChart = new Chart(ctx, {
             type: 'bar',
-            data: { labels: [], datasets: [{ data: [], backgroundColor: [], borderWidth: 0 }] },
+            data: { labels: [], datasets: [] },
             options: {
-                responsive: true, maintainAspectRatio: false,
-                scales: { y: { display: false, max: 1 }, x: { grid: { display: false }, ticks: { autoSkip: false } } },
-                plugins: { legend: { display: false } }
-            }
-        });
-
-        // 圓餅圖
-        pieChart = new Chart(pieCtx, {
-            type: 'pie',
-            data: {
-                labels: ['已選擇時間', '剩餘時間'],
-                datasets: [{ data: [0, 100], backgroundColor: ['#e67e22', '#e0e0e0'], borderWidth: 1 }]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                rotation: 0, // 從正上方(12點鐘方向)開始
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y', // 變成橫向長條圖，更像天數累積
+                scales: {
+                    x: { stacked: true, max: 24, display: false },
+                    y: { stacked: true, grid: { display: false } }
+                },
                 plugins: { legend: { display: false } }
             }
         });
     }
 
-    // 切換模式
-    function switchMode(mode) {
-        currentMode = mode;
-        
-        // 切換按鈕樣式
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.classList.remove('active');
-            if(btn.getAttribute('onclick').includes(mode)) btn.classList.add('active');
-        });
+    function calculateTime() {
+        const days = parseInt(document.getElementById('inputDays').value) || 0;
+        const hours = parseInt(document.getElementById('inputHours').value) || 0;
 
-        // 更新拉桿範圍
-        const config = modeConfig[currentMode];
-        timeRange.min = 1;
-        timeRange.max = config.max;
-        
-        // 預設給予該進制比較好觀察的數字
-        timeRange.value = currentMode === 'day-hour' ? 3 : 15; 
-        
-        sliderLabel.innerText = `調整${config.unitFrom}數：`;
-        
-        updatePage(parseInt(timeRange.value));
-    }
-
-    // 更新數據與圖表
-    function updatePage(value) {
-        const config = modeConfig[currentMode];
-        const max = config.max;
-
-        // 1. 更新文字顯示
-        currentValueDisplay.innerText = `${value} ${config.unitFrom}`;
-
-        // 2. 更新長條圖
-        const barColors = [];
-        const barData = [];
-        for (let i = 1; i <= max; i++) {
-            barData.push(1);
-            barColors.push(i <= value ? config.color : '#e0e0e0');
+        if (hours >= 24) {
+            alert("小提醒：小時滿 24 小時就要進位到「日」囉！請輸入 0~23 之間。");
+            return;
         }
-        barChart.data.labels = config.barLabels;
-        barChart.data.datasets[0].data = barData;
-        barChart.data.datasets[0].backgroundColor = barColors;
-        barChart.update();
 
-        // 3. 更新圓餅圖
-        pieChart.data.datasets[0].data = [value, max - value];
-        pieChart.data.datasets[0].backgroundColor = [config.color, '#e5e8e8'];
-        pieChart.update();
+        // 1. 更新圖表
+        const labels = [];
+        const datasetFull = [];
+        const datasetPart = [];
+        const datasetEmpty = [];
 
-        // 4. 計算分數與約分
-        const currentGcd = gcd(value, max);
-        const simNumerator = value / currentGcd;
-        const simDenominator = max / currentGcd;
+        // 畫出整數日
+        for (let i = 1; i <= days; i++) {
+            labels.push(`第 ${i} 天`);
+            datasetFull.push(24);
+            datasetPart.push(0);
+            datasetEmpty.push(0);
+        }
 
-        let fractionHtml = `
-            <div class="math-fraction">
-                <div class="math-numerator">${value}</div>
-                <div class="math-denominator">${max}</div>
+        // 畫出不完整的那一天（如果小時 > 0）
+        if (hours > 0 || days === 0) {
+            labels.push(`第 ${days + 1} 天`);
+            datasetFull.push(0);
+            datasetPart.push(hours);
+            datasetEmpty.push(24 - hours);
+        }
+
+        splitChart.data.labels = labels;
+        splitChart.data.datasets = [
+            { label: '滿日', data: datasetFull, backgroundColor: '#2ecc71', borderWidth: 0 },
+            { label: '不完整小時', data: datasetPart, backgroundColor: '#e67e22', borderWidth: 0 },
+            { label: '空白', data: datasetEmpty, backgroundColor: '#e5e8e8', borderWidth: 0 }
+        ];
+        splitChart.update();
+
+        // 2. 計算數學邏輯
+        const currentGcd = gcd(hours, 24);
+        const simNumerator = hours / currentGcd;
+        const simDenominator = 24 / currentGcd;
+        const decimalPart = (hours / 24).toFixed(3);
+        const cleanDecimalPart = parseFloat(decimalPart);
+        const totalDecimal = (days + cleanDecimalPart);
+
+        // 3. 填寫解題步驟文字
+        document.getElementById('step1Text').innerHTML = `我們有完整的 <b>${days} 日</b>，和多出來的 <b>${hours} 小時</b>。整數部分的 <b>${days} 日</b> 先保留不動。`;
+        
+        let step2Html = `因為 1 日 = 24 小時，所以 ${hours} 小時就是：<br>`;
+        step2Html += `• <b>分數：</b> 24格裡的${hours}格 $\\rightarrow$ <b style="color:#d35400;">\\frac{${hours}}{24} 日</b>`;
+        if (currentGcd > 1) {
+            step2Html += ` (約分後是 <b>\\frac{${simNumerator}}{${simDenominator}} 日</b>)`;
+        }
+        step2Html += `<br>• <b>小數：</b> 用 ${hours} ÷ 24 = <b style="color:#27ae60;">${cleanDecimalPart} 日</b>`;
+        document.getElementById('step2Text').innerHTML = step2Html;
+
+        document.getElementById('step3Text').innerHTML = `把整數和剛剛換算出來的部分合併：<br>` + 
+            `• <b>分數：</b> ${days} 日 + \\frac{${simNumerator}}{${simDenominator}} 日 = <b>${days}又\\frac{${simNumerator}}{${simDenominator}} 日</b><br>` +
+            `• <b>小數：</b> ${days} 日 + ${cleanDecimalPart} 日 = <b>${totalDecimal} 日</b>`;
+
+        // 4. 生成最終卡片的精美數學式
+        // 分數卡片
+        let fractionHtml = '';
+        if (days > 0) {
+            fractionHtml += `<span class="math-text">${days}</span>`;
+        }
+        fractionHtml += `
+            <div class="math-fraction" style="color:#d35400;">
+                <div class="math-numerator">${simNumerator}</div>
+                <div class="math-denominator">${simDenominator}</div>
             </div>
-            <span style="font-size:20px; vertical-align:middle; margin-left:5px;">${config.unitTo}</span>
+            <span class="math-text" style="font-size:24px; margin-left:5px;">日</span>
         `;
-        
-        if (currentGcd > 1 && value !== max) {
-            fractionHtml += `
-                <span style="font-size:24px; vertical-align:middle; margin:0 10px;">=</span>
-                <div class="math-fraction" style="color:#d35400;">
-                    <div class="math-numerator">${simNumerator}</div>
-                    <div class="math-denominator">${simDenominator}</div>
-                </div>
-                <span style="font-size:20px; vertical-align:middle; margin-left:5px;">${config.unitTo}</span>
-                <div class="process-text">上下同除以最大公因數【 ${currentGcd} 】</div>
-            `;
-        } else if (value === max) {
-            fractionHtml += `
-                <span style="font-size:24px; vertical-align:middle; margin:0 10px;">=</span>
-                <span style="font-size:36px; font-weight:bold; vertical-align:middle;">1</span>
-                <span style="font-size:20px; vertical-align:middle; margin-left:5px;">${config.unitTo}</span>
-                <div class="process-text">滿了！這代表完整的一單位。</div>
-            `;
+        if (currentGcd > 1) {
+            fractionHtml += `<div class="process-text">（原來的 ${days}又\\frac{${hours}}{24} 約分而來）</div>`;
         } else {
-            fractionHtml += `<div class="process-text">這已經是最簡分數囉！</div>`;
+            fractionHtml += `<div class="process-text">（已經是最簡分數）</div>`;
         }
-        fractionOutput.innerHTML = fractionHtml;
+        document.getElementById('fractionFinal').innerHTML = fractionHtml;
 
-        // 5. 計算小數
-        let decimalValue = (value / max).toFixed(3);
-        const cleanDecimal = parseFloat(decimalValue); // 去除末尾無意義的0
-        
+        // 小數卡片
         let decimalHtml = `
-            <div class="math-decimal">${cleanDecimal} <span style="font-size:20px; color:#333;">${config.unitTo}</span></div>
-            <div class="process-text">計算方法：${value} ÷ ${max}</div>
+            <span class="math-text" style="color:#27ae60; font-size:42px;">${totalDecimal}</span>
+            <span class="math-text" style="font-size:24px; margin-left:5px;">日</span>
+            <div class="process-text">（計算公式：${days} + [${hours} ÷ 24]）</div>
         `;
-        decimalOutput.innerHTML = decimalHtml;
+        document.getElementById('decimalFinal').innerHTML = decimalHtml;
     }
 
-    // 監聽拉桿
-    timeRange.addEventListener('input', (e) => {
-        updatePage(parseInt(e.target.value));
-    });
-
-    // 啟動初始化
-    initCharts();
-    switchMode('day-hour'); // 預設開啟24進制
+    // 啟動
+    initChart();
+    calculateTime(); // 預設執行 2日 18小時
 </script>
 
 </body>
